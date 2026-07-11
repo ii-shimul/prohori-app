@@ -6,6 +6,7 @@ import '../../auth/presentation/auth_notifier.dart';
 import '../../core/localization/locale_provider.dart';
 import '../../core/providers/app_providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../../theme.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -15,62 +16,209 @@ class ProfilePage extends ConsumerWidget {
     final strings = AppLocalizations.of(context)!;
     final locale = ref.watch(localeProvider);
     final user = ref.watch(authNotifierProvider).value?.user;
-    return Scaffold(
-      appBar: AppBar(title: Text(strings.profile)),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
-        Text(user?.email ?? '', maxLines: 1, overflow: TextOverflow.ellipsis),
-        const SizedBox(height: 32),
-        Text(strings.language, style: const TextStyle(fontWeight: FontWeight.w700)),
-        const SizedBox(height: 12),
-        _LanguageToggle(selected: locale, onChanged: (value) => ref.read(localeProvider.notifier).setLocale(value)),
-        const SizedBox(height: 32),
-        OutlinedButton.icon(
-          onPressed: () async {
-            await ref.read(authNotifierProvider.notifier).logout();
-            if (context.mounted) context.go('/splash');
-          },
-          icon: const Icon(Icons.logout),
-          label: Text(strings.signOut),
-        ),
-      ]),
-    );
-  }
-}
+    final email = user?.email ?? 'agent@prohori.demo';
+    final name = email.startsWith('agent@') ? 'Outlet Agent' : email.split('@').first;
 
-class _LanguageToggle extends StatelessWidget {
-  const _LanguageToggle({required this.selected, required this.onChanged});
-  final Locale selected;
-  final ValueChanged<Locale> onChanged;
-  @override
-  Widget build(BuildContext context) {
-    final isBangla = selected.languageCode == 'bn';
-    return Semantics(
-      label: 'Language selector',
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, border: Border.all(color: Theme.of(context).colorScheme.outline), borderRadius: BorderRadius.circular(8)),
-        child: LayoutBuilder(builder: (context, constraints) => Stack(children: [
-          AnimatedAlign(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.elasticOut,
-            alignment: isBangla ? Alignment.centerRight : Alignment.centerLeft,
-            child: Container(width: constraints.maxWidth / 2, margin: const EdgeInsets.all(3), decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, borderRadius: BorderRadius.circular(6))),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Row(children: [
+          Icon(Icons.shield_outlined),
+          SizedBox(width: 8),
+          Text('PROHORI', style: TextStyle(fontWeight: FontWeight.w800)),
+        ]),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: Center(child: Text('ID: 4829 | DHAKA')),
           ),
-          Row(children: [
-            Expanded(child: _LanguageChoice(label: 'English', selected: !isBangla, onTap: () => onChanged(const Locale('en')))),
-            Expanded(child: _LanguageChoice(label: 'বাংলা', selected: isBangla, onTap: () => onChanged(const Locale('bn')))),
-          ]),
-        ])),
+        ],
+      ),
+      bottomNavigationBar: _ProfileNavigation(
+        onDestinationSelected: (index) {
+          switch (index) {
+            case 0:
+              context.go('/dashboard');
+            case 1:
+              context.go('/alerts');
+            case 2:
+              context.go('/inbox');
+          }
+        },
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
+        children: [
+          _IdentityCard(name: name, email: email),
+          const SizedBox(height: 24),
+          Card(
+            child: Column(children: [
+              const _StaticSettingRow(
+                icon: Icons.sync_outlined,
+                title: 'Data freshness',
+                value: 'Last sync: just now',
+              ),
+              const Divider(height: 1),
+              _LanguageRow(
+                locale: locale,
+                onChanged: (value) => ref
+                    .read(localeProvider.notifier)
+                    .setLocale(Locale(value)),
+              ),
+              const Divider(height: 1),
+              const _StaticSettingRow(
+                icon: Icons.shield_outlined,
+                title: 'Security',
+                value: 'PKCE session active',
+                valueColor: AppPalette.success,
+              ),
+              const Divider(height: 1),
+              const _StaticSettingRow(
+                icon: Icons.manage_accounts_outlined,
+                title: 'Account settings',
+                trailing: Icon(Icons.chevron_right),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            height: 52,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppPalette.error,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                await ref.read(authNotifierProvider.notifier).logout();
+                if (context.mounted) context.go('/splash');
+              },
+              icon: const Icon(Icons.logout),
+              label: Text(strings.signOut),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _LanguageChoice extends StatelessWidget {
-  const _LanguageChoice({required this.label, required this.selected, required this.onTap});
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
+class _IdentityCard extends StatelessWidget {
+  const _IdentityCard({required this.name, required this.email});
+  final String name;
+  final String email;
+
   @override
-  Widget build(BuildContext context) => InkWell(onTap: onTap, borderRadius: BorderRadius.circular(6), child: Center(child: AnimatedSwitcher(duration: const Duration(milliseconds: 220), switchInCurve: Curves.elasticOut, child: Text(label, key: ValueKey(selected), style: TextStyle(color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w700)) )));
+  Widget build(BuildContext context) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(children: [
+            CircleAvatar(
+              radius: 36,
+              backgroundColor: AppPalette.primary,
+              foregroundColor: Colors.white,
+              child: Text(
+                _initials(name),
+                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
+              ),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(spacing: 8, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                    Text(email, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    const Chip(label: Text('OUTLET_AGENT')),
+                  ]),
+                ],
+              ),
+            ),
+          ]),
+        ),
+      );
+
+  String _initials(String value) {
+    final words = value.trim().split(RegExp(r'\s+'));
+    return words.take(2).map((word) => word.isEmpty ? '' : word[0].toUpperCase()).join();
+  }
+}
+
+class _StaticSettingRow extends StatelessWidget {
+  const _StaticSettingRow({
+    required this.icon,
+    required this.title,
+    this.value,
+    this.valueColor,
+    this.trailing,
+  });
+  final IconData icon;
+  final String title;
+  final String? value;
+  final Color? valueColor;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+        minVerticalPadding: 16,
+        leading: Icon(icon),
+        title: Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+        trailing: trailing ??
+            (value == null
+                ? null
+                : ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 180),
+                    child: Text(
+                      value!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                      style: TextStyle(color: valueColor ?? AppPalette.inkMuted),
+                    ),
+                  )),
+      );
+}
+
+class _LanguageRow extends StatelessWidget {
+  const _LanguageRow({required this.locale, required this.onChanged});
+  final Locale locale;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+        minVerticalPadding: 12,
+        leading: const Icon(Icons.language_outlined),
+        title: const Text('Language', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+        trailing: SegmentedButton<String>(
+          segments: const [
+            ButtonSegment(value: 'en', label: Text('English')),
+            ButtonSegment(value: 'bn', label: Text('বাংলা')),
+          ],
+          selected: {locale.languageCode},
+          showSelectedIcon: false,
+          onSelectionChanged: (selection) => onChanged(selection.first),
+        ),
+      );
+}
+
+class _ProfileNavigation extends StatelessWidget {
+  const _ProfileNavigation({required this.onDestinationSelected});
+  final ValueChanged<int> onDestinationSelected;
+
+  @override
+  Widget build(BuildContext context) => NavigationBar(
+        selectedIndex: 3,
+        onDestinationSelected: onDestinationSelected,
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Dashboard'),
+          NavigationDestination(icon: Icon(Icons.notifications_outlined), selectedIcon: Icon(Icons.notifications), label: 'Alerts'),
+          NavigationDestination(icon: Icon(Icons.inbox_outlined), selectedIcon: Icon(Icons.inbox), label: 'Inbox'),
+          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
+        ],
+      );
 }

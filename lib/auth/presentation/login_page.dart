@@ -22,6 +22,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _passwordController = TextEditingController(
     text: AppEnvironment.useDemoData ? 'demo-password' : '',
   );
+
   bool _submitting = false;
   Object? _submissionError;
 
@@ -56,65 +57,94 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final error = _submissionError ?? widget.error;
 
     return Scaffold(
-      body: SafeArea(
-        child: Center(
+      appBar: AppBar(
+        title: const Row(
+          children: [
+            Icon(Icons.shield_outlined),
+            SizedBox(width: 8),
+            Text('PROHORI', style: TextStyle(fontWeight: FontWeight.w800)),
+          ],
+        ),
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text('Prohori', style: Theme.of(context).textTheme.headlineMedium),
-                    const SizedBox(height: 8),
-                    Text(
-                      AppEnvironment.useDemoData
-                          ? 'Demo mode uses built-in sample data.'
-                          : 'Sign in with your seeded outlet account.',
-                    ),
-                    const SizedBox(height: 32),
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      autofillHints: const [AutofillHints.username],
-                      decoration: const InputDecoration(labelText: 'Email'),
-                      validator: (value) => value == null || !value.contains('@')
-                          ? 'Enter a valid email address.'
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      autofillHints: const [AutofillHints.password],
-                      decoration: const InputDecoration(labelText: 'Password'),
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Enter your password.'
-                          : null,
-                      onFieldSubmitted: (_) => _submit(),
-                    ),
-                    if (error != null) ...[
+            child: Form(
+              key: _formKey,
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Icon(Icons.account_circle_outlined, size: 48),
                       const SizedBox(height: 16),
                       Text(
-                        'Sign-in failed. Check your email and password.',
-                        style: TextStyle(color: Theme.of(context).colorScheme.error),
+                        'Outlet agent sign in',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppEnvironment.useDemoData
+                            ? 'Demo account is ready to use.'
+                            : 'Use your assigned outlet account.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Color(0xFF687173)),
+                      ),
+                      const SizedBox(height: 24),
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        autofillHints: const [AutofillHints.username],
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                          prefixIcon: Icon(Icons.email_outlined),
+                        ),
+                        validator: (value) => value == null || !value.contains('@')
+                            ? 'Enter a valid email address.'
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        autofillHints: const [AutofillHints.password],
+                        decoration: const InputDecoration(
+                          labelText: 'Password',
+                          prefixIcon: Icon(Icons.lock_outline),
+                        ),
+                        validator: (value) => value == null || value.isEmpty
+                            ? 'Enter your password.'
+                            : null,
+                        onFieldSubmitted: (_) => _submit(),
+                      ),
+                      if (error != null) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          'Sign-in failed. Check your email and password.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Theme.of(context).colorScheme.error),
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      FilledButton.icon(
+                        onPressed: _submitting ? null : _submit,
+                        icon: _submitting
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.login),
+                        label: Text(_submitting ? 'Signing in…' : 'Sign in'),
                       ),
                     ],
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: _submitting ? null : _submit,
-                      child: _submitting
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Sign in'),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),

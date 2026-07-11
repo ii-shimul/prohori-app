@@ -28,3 +28,5 @@ Could you write the Dart code for these UI screens, the shimmer loader, and the 
 
 
 commit-4: update the alert screen like reference design, and make that happen using plain material ui, dont use any fancy library or packages, " make sure the ui looks good
+
+commit -5: update the profile,home,inbox,alert screen ui design only using material 3

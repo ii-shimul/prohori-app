@@ -14,24 +14,52 @@ class AlertListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final result = ref.watch(alertsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Alerts')),
+      appBar: AppBar(
+        title: const Row(children: [
+          Icon(Icons.shield_outlined),
+          SizedBox(width: 8),
+          Text('PROHORI', style: TextStyle(fontWeight: FontWeight.w800)),
+        ]),
+        actions: const [Padding(padding: EdgeInsets.only(right: 16), child: Center(child: Text('ALERTS')))],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: 1,
+        onDestinationSelected: (index) {
+          switch (index) {
+            case 0: context.go('/dashboard');
+            case 2: context.go('/inbox');
+            case 3: context.go('/profile');
+          }
+        },
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Dashboard'),
+          NavigationDestination(icon: Icon(Icons.notifications_outlined), selectedIcon: Icon(Icons.notifications), label: 'Alerts'),
+          NavigationDestination(icon: Icon(Icons.inbox_outlined), selectedIcon: Icon(Icons.inbox), label: 'Inbox'),
+          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
+        ],
+      ),
       body: result.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _ErrorView(onRetry: () => ref.invalidate(alertsProvider)),
         data: (poll) => poll.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => _ErrorView(onRetry: () => ref.invalidate(alertsProvider)),
-          data: (alerts) => alerts.isEmpty
-              ? const Center(child: Text('No alerts need your attention.'))
-              : RefreshIndicator(
-                  onRefresh: () async => ref.invalidate(alertsProvider),
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: alerts.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) => _AlertCard(alert: alerts[index]),
-                  ),
-                ),
+          data: (alerts) => RefreshIndicator(
+            onRefresh: () async => ref.invalidate(alertsProvider),
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                const Text('Active alerts', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 6),
+                const Text('Review alerts for your assigned outlet.', style: TextStyle(color: AppPalette.inkMuted)),
+                const SizedBox(height: 20),
+                if (alerts.isEmpty)
+                  const Card(child: Padding(padding: EdgeInsets.all(24), child: Center(child: Text('No alerts need your attention.'))))
+                else
+                  ...alerts.map((item) => Padding(padding: const EdgeInsets.only(bottom: 12), child: _AlertCard(alert: item))),
+              ],
+            ),
+          ),
         ),
       ),
     );
