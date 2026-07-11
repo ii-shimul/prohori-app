@@ -1,5 +1,13 @@
 # prohori_app
 
+## Run
+
+```bash
+flutter run -d edge
+```
+
+App uses built-in dummy auth, outlet data, and alerts.
+
 A new Flutter project.
 
 ## Getting Started

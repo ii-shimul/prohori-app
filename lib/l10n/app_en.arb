@@ -1,0 +1,23 @@
+{
+  "@@locale": "en",
+  "acknowledgeAlert": "Acknowledge alert",
+  "acknowledgingAlert": "Acknowledging alert…",
+  "alertAcknowledged": "Alert acknowledged. Opening case timeline.",
+  "caseTimeline": "Case timeline",
+  "caseStatus": "Case status",
+  "addNote": "Add scoped note",
+  "noteHint": "Write a factual update for authorized operations.",
+  "sendNote": "Send note",
+  "sendingNote": "Sending note…",
+  "noteSent": "Note added to case timeline.",
+  "timelineEmpty": "No timeline events yet.",
+  "actionFailed": "Action could not be completed. Try again.",
+  "inbox": "Inbox",
+  "profile": "Profile",
+  "language": "Language",
+  "signOut": "Sign out",
+  "telemetry": "Data telemetry",
+  "dataGood": "GOOD",
+  "dataDegraded": "DEGRADED",
+  "dataCritical": "CRITICAL"
+}
