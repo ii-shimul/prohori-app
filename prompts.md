@@ -35,3 +35,5 @@ commit -5: update the profile,home,inbox,alert screen ui design only using mater
 commit -6: inject smoke test to ensure everything's alright, and provide updated audit' what we done , what need to done
 
 commit -7: findout the gaps and missing features by compare with backend 
+
+commit-8: we got some issue in dashboard screen, currently we got one central emoney amount but we need to show multiple provider remaining amount, fix the feature mismatch

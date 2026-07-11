@@ -8,6 +8,7 @@ import 'package:prohori_app/auth/domain/auth_repository.dart';
 import 'package:prohori_app/auth/domain/auth_user.dart';
 import 'package:prohori_app/cases/data/cases_api.dart';
 import 'package:prohori_app/core/network/api_client.dart';
+import 'package:prohori_app/core/scope/session_scope.dart';
 import 'package:prohori_app/dashboard/data/outlet_dashboard_api.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthUser;
 
@@ -31,6 +32,38 @@ void main() {
     final alerts = await AlertsApi(apiClient).fetchAlerts();
     expect(alerts, isNotEmpty);
     expect(alerts.first.id, isNotEmpty);
+  });
+
+  test('session scope preserves assigned outlet boundaries', () {
+    final first = SessionScope.fromJson({
+      'id': 'agent-a',
+      'role': 'OUTLET_AGENT',
+      'assignedOutletIds': ['outlet-a'],
+    });
+    final second = SessionScope.fromJson({
+      'id': 'agent-b',
+      'role': 'OUTLET_AGENT',
+      'assignedOutletIds': ['outlet-b'],
+    });
+
+    expect(first.primaryOutletId, 'outlet-a');
+    expect(second.primaryOutletId, 'outlet-b');
+    expect(first.outletIds, isNot(contains(second.primaryOutletId)));
+  });
+
+  test('mutation sends an idempotency key', () async {
+    final dio = Dio();
+    String? receivedKey;
+    dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) {
+        receivedKey = options.headers['Idempotency-Key'] as String?;
+        handler.resolve(Response<void>(requestOptions: options));
+      },
+    ));
+
+    await ApiClient(dio).post<void>('/alerts/a/acknowledge', idempotencyKey: 'smoke-key');
+
+    expect(receivedKey, 'smoke-key');
   });
 
   test('logout clears secure storage after sign-out', () async {

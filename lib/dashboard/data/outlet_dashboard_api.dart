@@ -13,12 +13,18 @@ class OutletDashboardApi {
     if (AppEnvironment.useDemoData) {
       return OutletDashboard.fromJson(const {
         'sharedPhysicalCash': {'amount': 125000, 'currency': 'BDT'},
-        'providerEMoney': {'amount': 68000, 'currency': 'BDT'},
+        'providerEMoneyBalances': [
+          {'provider': 'bKash', 'balance': {'amount': 25400, 'currency': 'BDT'}},
+          {'provider': 'Nagad', 'balance': {'amount': 18200, 'currency': 'BDT'}},
+          {'provider': 'Rocket', 'balance': {'amount': 9850, 'currency': 'BDT'}},
+        ],
         'freshness': 'Demo data · refreshed now',
         'dataQuality': 'good',
       }, const {
-        'limitingResource': 'Provider e-money is the limiting resource.',
-        'summary': 'Expected to remain sufficient for the next 4 hours.',
+        'limitingResource': 'bKash e-money is the limiting resource.',
+        'limitingProvider': 'bKash',
+        'depletionEtaMinutes': 30,
+        'summary': 'bKash e-money may deplete in about 30 minutes.',
       });
     }
     final responses = await Future.wait([

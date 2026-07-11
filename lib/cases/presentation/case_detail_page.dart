@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../theme.dart';
@@ -53,7 +54,14 @@ class _CaseDetailPageState extends ConsumerState<CaseDetailPage> {
     final strings = AppLocalizations.of(context)!;
     final result = ref.watch(caseDetailProvider(widget.caseId));
     return Scaffold(
-      appBar: AppBar(title: Text(strings.caseTimeline, overflow: TextOverflow.ellipsis)),
+      appBar: AppBar(
+        leading: IconButton(
+          tooltip: 'Back to alerts',
+          onPressed: () => context.go('/alerts'),
+          icon: const Icon(Icons.arrow_back),
+        ),
+        title: Text(strings.caseTimeline, overflow: TextOverflow.ellipsis),
+      ),
       body: result.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => Center(child: ElevatedButton(onPressed: () => ref.invalidate(caseDetailProvider(widget.caseId)), child: const Text('Retry'))),

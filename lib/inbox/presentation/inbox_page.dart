@@ -103,36 +103,33 @@ class _InboxCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: ListTile(
-          contentPadding: const EdgeInsets.all(16),
-          leading: CircleAvatar(
-            backgroundColor: _severityColor(alert.severity).withOpacity(0.14),
-            foregroundColor: _severityColor(alert.severity),
-            child: const Icon(Icons.notifications_outlined),
-          ),
-          title: Text(
-            alert.title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: Text(
-              alert.summary.isEmpty ? 'Open alert requires review.' : alert.summary,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          trailing: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Chip(
-              visualDensity: VisualDensity.compact,
-              label: Text(alert.severity),
-            ),
-            const SizedBox(height: 4),
-            const Icon(Icons.chevron_right),
-          ]),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
           onTap: () => context.go('/alerts/${alert.id}'),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              CircleAvatar(
+                backgroundColor: _severityColor(alert.severity).withOpacity(0.14),
+                foregroundColor: _severityColor(alert.severity),
+                child: const Icon(Icons.notifications_outlined),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [
+                    Expanded(child: Text(alert.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700))),
+                    const SizedBox(width: 8),
+                    Chip(visualDensity: VisualDensity.compact, label: Text(alert.severity)),
+                  ]),
+                  const SizedBox(height: 6),
+                  Text(alert.summary.isEmpty ? 'Open alert requires review.' : alert.summary, maxLines: 2, overflow: TextOverflow.ellipsis),
+                ]),
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.chevron_right),
+            ]),
+          ),
         ),
       );
 

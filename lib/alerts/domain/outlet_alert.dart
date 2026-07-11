@@ -5,6 +5,7 @@ class OutletAlert {
     required this.summary,
     required this.severity,
     required this.status,
+    this.caseId,
     this.createdAt,
   });
 
@@ -13,6 +14,7 @@ class OutletAlert {
   final String summary;
   final String severity;
   final String status;
+  final String? caseId;
   final DateTime? createdAt;
 
   factory OutletAlert.fromJson(Map<String, dynamic> json) => OutletAlert(
@@ -21,6 +23,7 @@ class OutletAlert {
         summary: json['summary'] as String? ?? json['message'] as String? ?? '',
         severity: json['severity'] as String? ?? 'UNKNOWN',
         status: json['status'] as String? ?? 'OPEN',
+        caseId: json['caseId'] as String? ?? json['linkedCaseId'] as String?,
         createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}'),
       );
 }

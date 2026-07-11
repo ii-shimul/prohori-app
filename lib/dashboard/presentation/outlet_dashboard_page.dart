@@ -87,11 +87,24 @@ class _DashboardContent extends StatelessWidget {
         children: [
           _CashCard(value: data.sharedPhysicalCash, freshness: data.freshness),
           const SizedBox(height: 16),
-          _EMoneyCard(value: data.providerEMoney),
+          ...data.providerEMoneyBalances.map(
+            (balance) => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _EMoneyCard(balance: balance),
+            ),
+          ),
           const SizedBox(height: 16),
-          _DepletionCard(summary: data.forecastSummary),
+          _DepletionCard(
+            summary: data.forecastSummary,
+            provider: data.limitingProvider,
+            etaMinutes: data.depletionEtaMinutes,
+          ),
           const SizedBox(height: 16),
-          _ConstraintCard(value: data.limitingResource),
+          _ConstraintCard(
+            value: data.limitingProvider == null
+                ? data.limitingResource
+                : '${data.limitingProvider} e-money · ${data.depletionEtaMinutes ?? '?'} mins remaining',
+          ),
           const SizedBox(height: 16),
           _TelemetryCard(quality: data.dataQuality, freshness: data.freshness),
           const SizedBox(height: 80),
@@ -141,15 +154,15 @@ class _CashCard extends StatelessWidget {
 }
 
 class _EMoneyCard extends StatelessWidget {
-  const _EMoneyCard({required this.value});
-  final MoneyAmount value;
+  const _EMoneyCard({required this.balance});
+  final ProviderEMoneyBalance balance;
 
   @override
   Widget build(BuildContext context) => Card(
         child: ListTile(
           contentPadding: const EdgeInsets.all(20),
-          title: const Text(
-            'Provider e-money',
+          title: Text(
+            balance.provider,
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           ),
           subtitle: Padding(
@@ -166,7 +179,7 @@ class _EMoneyCard extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                '${value.currency} ${value.amount}',
+                '${balance.amount.currency} ${balance.amount.amount}',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: AppPalette.secondary,
                       fontWeight: FontWeight.w800,
@@ -183,8 +196,14 @@ class _EMoneyCard extends StatelessWidget {
 }
 
 class _DepletionCard extends StatelessWidget {
-  const _DepletionCard({required this.summary});
+  const _DepletionCard({
+    required this.summary,
+    required this.provider,
+    required this.etaMinutes,
+  });
   final String summary;
+  final String? provider;
+  final int? etaMinutes;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -208,7 +227,15 @@ class _DepletionCard extends StatelessWidget {
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const Icon(Icons.warning_amber_rounded, color: AppPalette.error),
                 const SizedBox(width: 12),
-                Expanded(child: Text(summary, maxLines: 4, overflow: TextOverflow.ellipsis)),
+                Expanded(
+                  child: Text(
+                    provider == null || etaMinutes == null
+                        ? summary
+                        : '$provider may deplete in $etaMinutes mins. $summary',
+                    maxLines: 4,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ]),
             ),
           ]),
