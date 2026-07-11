@@ -23,3 +23,8 @@ commit - 3
 For Screen 9, instead of just displaying boring text for our status, let's build a cool telemetry card with a light gray #F5F7FA background, a thin #D7DCE1 border, and show the data state as tiny colorful badges using #22A94F for good and #C23934 for critical with white text. To make the app feel premium, let's add a skeletal loading screen using Shimmer.fromColors with #F5F7FA and #EEF0F3 that smoothly fades our actual Riverpod data into view once it's finished loading. For Screen 8, let's swap out the basic list tiles in our notification inbox with minimalist cards using a #EEF0F3 background and really clean modern fonts. On Screen 10, the profile page, we need a language toggle that feels awesome to use, so let's make a sliding segmented button with a bouncy elastic animation to switch between English and Bangla instantly. Finally, I need to make sure our logout button does a complete secure cleanup, so when clicked it should call Supabase sign-out, run a deleteAll() on our secure storage so absolutely nothing is left behind, clear all our Riverpod caches, and throw the user back to the login screen.
 
 Could you write the Dart code for these UI screens, the shimmer loader, and the secure logout logic for me?
+
+
+
+
+commit-4: update the alert screen like reference design, and make that happen using plain material ui, dont use any fancy library or packages, " make sure the ui looks good
