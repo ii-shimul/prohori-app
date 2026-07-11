@@ -6,7 +6,10 @@ class AlertsApi {
   final ApiClient _apiClient;
 
   Future<List<OutletAlert>> fetchAlerts() async {
-    final response = await _apiClient.get<Object>('/alerts');
+    final response = await _apiClient.get<Object>(
+      '/alerts',
+      queryParameters: const {'active': true},
+    );
     final payload = response.data;
     final items = payload is List
         ? payload

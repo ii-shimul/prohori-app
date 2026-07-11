@@ -51,3 +51,5 @@ commit-11 we completed phase 1 and tested properly, now we need to connect phase
 commit -12 can we start our phase 4? or we reamin any unfinshed work in privious phases? if everything clear, continue with our phase works
 
 commit -13 we have completed phase 4, lets start with phase 5
+
+commit -14 we have done our phase 5, lets start the phase 6 and complete the task without any issue

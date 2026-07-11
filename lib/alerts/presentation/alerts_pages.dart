@@ -240,7 +240,7 @@ class _SeverityBadge extends StatelessWidget {
   const _SeverityBadge({required this.severity});
   final String severity;
   @override
-  Widget build(BuildContext context) => Text(severity, style: TextStyle(color: severity == 'HIGH' ? AppPalette.error : AppPalette.inkMuted, fontWeight: FontWeight.w700));
+  Widget build(BuildContext context) => Text(severity.toUpperCase(), style: TextStyle(color: severity.toUpperCase() == 'HIGH' || severity.toUpperCase() == 'CRITICAL' ? AppPalette.error : AppPalette.inkMuted, fontWeight: FontWeight.w700));
 }
 
 class _ErrorView extends StatelessWidget {
