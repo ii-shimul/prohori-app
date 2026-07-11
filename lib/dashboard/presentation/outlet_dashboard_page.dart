@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shimmer/shimmer.dart';
 
 import '../../core/config/app_environment.dart';
 import '../../theme.dart';
@@ -13,63 +12,58 @@ class OutletDashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final result = ref.watch(outletDashboardProvider(AppEnvironment.outletId));
+    final dashboard = ref.watch(outletDashboardProvider(AppEnvironment.outletId));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Outlet overview'),
-        actions: [
-          IconButton(
-            tooltip: 'Alerts',
-            onPressed: () => context.go('/alerts'),
-            icon: const Icon(Icons.notifications_outlined),
+        title: const Row(
+          children: [
+            Icon(Icons.shield_outlined),
+            SizedBox(width: 8),
+            Text('PROHORI', style: TextStyle(fontWeight: FontWeight.w800)),
+          ],
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: Chip(
+              avatar: Icon(Icons.circle, size: 10, color: AppPalette.success),
+              label: Text('SYNCED'),
+            ),
           ),
         ],
       ),
-      body: result.when(
-        loading: () => const _DashboardSkeleton(),
-        error: (error, _) => _DashboardError(
-          onRetry: () => ref.invalidate(outletDashboardProvider(AppEnvironment.outletId)),
+      bottomNavigationBar: _DashboardNavigation(
+        onDestinationSelected: (index) {
+          switch (index) {
+            case 1:
+              context.go('/alerts');
+            case 2:
+              context.go('/inbox');
+            case 3:
+              context.go('/profile');
+          }
+        },
+      ),
+      body: dashboard.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, __) => _ErrorView(
+          onRetry: () => ref.invalidate(
+            outletDashboardProvider(AppEnvironment.outletId),
+          ),
         ),
         data: (poll) => poll.when(
-          loading: () => const _DashboardSkeleton(),
-          error: (error, _) => _DashboardError(
-            onRetry: () => ref.invalidate(outletDashboardProvider(AppEnvironment.outletId)),
-          ),
-          data: (dashboard) => TweenAnimationBuilder<double>(
-            duration: const Duration(milliseconds: 240),
-            curve: Curves.easeOut,
-            tween: Tween(begin: 0, end: 1),
-            builder: (context, opacity, child) => Opacity(opacity: opacity, child: child),
-            child: RefreshIndicator(
-            onRefresh: () async => ref.invalidate(outletDashboardProvider(AppEnvironment.outletId)),
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                const Text('Liquidity status', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
-                const SizedBox(height: 8),
-                Text(dashboard.freshness, style: const TextStyle(color: AppPalette.inkMuted)),
-                const SizedBox(height: 24),
-                _TelemetryCard(quality: dashboard.dataQuality),
-                const SizedBox(height: 16),
-                _CashCard(value: dashboard.sharedPhysicalCash),
-                const SizedBox(height: 16),
-                _EMoneyCard(value: dashboard.providerEMoney),
-                const SizedBox(height: 24),
-                _InsightCard(
-                  title: 'Limiting resource',
-                  icon: Icons.warning_amber_outlined,
-                  value: dashboard.limitingResource,
-                ),
-                const SizedBox(height: 12),
-                _InsightCard(
-                  title: 'Forecast',
-                  icon: Icons.schedule_outlined,
-                  value: dashboard.forecastSummary,
-                ),
-              ],
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => _ErrorView(
+            onRetry: () => ref.invalidate(
+              outletDashboardProvider(AppEnvironment.outletId),
             ),
           ),
+          data: (data) => RefreshIndicator(
+            onRefresh: () async => ref.invalidate(
+              outletDashboardProvider(AppEnvironment.outletId),
+            ),
+            child: _DashboardContent(data: data),
           ),
         ),
       ),
@@ -77,91 +71,64 @@ class OutletDashboardPage extends ConsumerWidget {
   }
 }
 
-class _TelemetryCard extends StatelessWidget {
-  const _TelemetryCard({required this.quality});
-  final String quality;
+class _DashboardContent extends StatelessWidget {
+  const _DashboardContent({required this.data});
+  final OutletDashboard data;
 
   @override
-  Widget build(BuildContext context) {
-    final normalized = quality.toLowerCase();
-    final color = normalized == 'critical'
-        ? AppPalette.error
-        : normalized == 'degraded'
-            ? AppPalette.primary
-            : AppPalette.success;
-    final label = normalized == 'critical'
-        ? 'CRITICAL'
-        : normalized == 'degraded'
-            ? 'DEGRADED'
-            : 'GOOD';
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppPalette.surface,
-        border: Border.all(color: AppPalette.border, width: 1.5),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(children: [
-        const Icon(Icons.sensors_outlined),
-        const SizedBox(width: 12),
-        const Expanded(child: Text('Data telemetry', maxLines: 1, overflow: TextOverflow.ellipsis)),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
-          child: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-        ),
-      ]),
-    );
-  }
-}
-
-class _DashboardSkeleton extends StatelessWidget {
-  const _DashboardSkeleton();
-
-  @override
-  Widget build(BuildContext context) => Shimmer.fromColors(
-        baseColor: AppPalette.surface,
-        highlightColor: AppPalette.extraSurface,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: const [
-            _SkeletonBlock(height: 28, width: 180),
-            SizedBox(height: 24),
-            _SkeletonBlock(height: 150),
-            SizedBox(height: 16),
-            _SkeletonBlock(height: 120),
-            SizedBox(height: 16),
-            _SkeletonBlock(height: 76),
-          ],
-        ),
-      );
-}
-
-class _SkeletonBlock extends StatelessWidget {
-  const _SkeletonBlock({required this.height, this.width = double.infinity});
-  final double height;
-  final double width;
-  @override
-  Widget build(BuildContext context) => Container(
-        height: height,
-        width: width,
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+  Widget build(BuildContext context) => ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _CashCard(value: data.sharedPhysicalCash, freshness: data.freshness),
+          const SizedBox(height: 16),
+          _EMoneyCard(value: data.providerEMoney),
+          const SizedBox(height: 16),
+          _DepletionCard(summary: data.forecastSummary),
+          const SizedBox(height: 16),
+          _ConstraintCard(value: data.limitingResource),
+          const SizedBox(height: 16),
+          _TelemetryCard(quality: data.dataQuality, freshness: data.freshness),
+          const SizedBox(height: 80),
+        ],
       );
 }
 
 class _CashCard extends StatelessWidget {
-  const _CashCard({required this.value});
+  const _CashCard({required this.value, required this.freshness});
   final MoneyAmount value;
+  final String freshness;
 
   @override
   Widget build(BuildContext context) => Card(
-        color: AppPalette.primary,
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Shared physical cash', style: TextStyle(color: Colors.white)),
-            const SizedBox(height: 12),
-            Text('${value.currency} ${value.amount}', style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w700)),
+            Row(children: [
+              const Icon(Icons.payments_outlined),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Shared physical cash',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                ),
+              ),
+              const Chip(label: Text('VAULT A')),
+            ]),
+            const SizedBox(height: 24),
+            Text(
+              '${value.currency} ${value.amount}',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: AppPalette.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              freshness,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: AppPalette.inkMuted),
+            ),
           ]),
         ),
       );
@@ -173,43 +140,167 @@ class _EMoneyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        color: AppPalette.secondary,
+        child: ListTile(
+          contentPadding: const EdgeInsets.all(20),
+          title: const Text(
+            'Provider e-money',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text(
+                'E-MONEY BALANCE',
+                style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w800,
+                  color: AppPalette.inkMuted,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${value.currency} ${value.amount}',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: AppPalette.secondary,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ]),
+          ),
+          trailing: const Chip(
+            avatar: Icon(Icons.link, size: 16),
+            label: Text('CONNECTED'),
+          ),
+        ),
+      );
+}
+
+class _DepletionCard extends StatelessWidget {
+  const _DepletionCard({required this.summary});
+  final String summary;
+
+  @override
+  Widget build(BuildContext context) => Card(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Provider e-money', style: TextStyle(color: Colors.white)),
-            const SizedBox(height: 12),
-            Text('${value.currency} ${value.amount}', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700)),
+            const ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.timeline_outlined),
+              title: Text(
+                'Depletion horizon',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFE9E7),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Icon(Icons.warning_amber_rounded, color: AppPalette.error),
+                const SizedBox(width: 12),
+                Expanded(child: Text(summary, maxLines: 4, overflow: TextOverflow.ellipsis)),
+              ]),
+            ),
           ]),
         ),
       );
 }
 
-class _InsightCard extends StatelessWidget {
-  const _InsightCard({required this.title, required this.icon, required this.value});
-  final String title;
-  final IconData icon;
+class _ConstraintCard extends StatelessWidget {
+  const _ConstraintCard({required this.value});
   final String value;
 
   @override
   Widget build(BuildContext context) => Card(
-        child: ListTile(leading: Icon(icon), title: Text(title), subtitle: Text(value)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(children: [
+            const CircleAvatar(
+              radius: 28,
+              backgroundColor: AppPalette.extraSurface,
+              child: Icon(Icons.account_balance_wallet_outlined),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'CURRENT CONSTRAINT',
+              style: TextStyle(
+                fontSize: 11,
+                letterSpacing: 1.2,
+                fontWeight: FontWeight.w800,
+                color: AppPalette.inkMuted,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+            ),
+          ]),
+        ),
       );
 }
 
-class _DashboardError extends StatelessWidget {
-  const _DashboardError({required this.onRetry});
+class _TelemetryCard extends StatelessWidget {
+  const _TelemetryCard({required this.quality, required this.freshness});
+  final String quality;
+  final String freshness;
+
+  @override
+  Widget build(BuildContext context) {
+    final normalized = quality.toLowerCase();
+    final color = normalized == 'critical'
+        ? AppPalette.error
+        : normalized == 'degraded'
+            ? AppPalette.primary
+            : AppPalette.success;
+    return Card(
+      color: AppPalette.surface,
+      child: ListTile(
+        leading: const Icon(Icons.sensors_outlined),
+        title: const Text('Data telemetry'),
+        subtitle: Text(freshness, maxLines: 1, overflow: TextOverflow.ellipsis),
+        trailing: Chip(
+          backgroundColor: color,
+          label: Text(
+            normalized.toUpperCase(),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DashboardNavigation extends StatelessWidget {
+  const _DashboardNavigation({required this.onDestinationSelected});
+  final ValueChanged<int> onDestinationSelected;
+
+  @override
+  Widget build(BuildContext context) => NavigationBar(
+        selectedIndex: 0,
+        onDestinationSelected: onDestinationSelected,
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Dashboard'),
+          NavigationDestination(icon: Icon(Icons.notifications_outlined), selectedIcon: Icon(Icons.notifications), label: 'Alerts'),
+          NavigationDestination(icon: Icon(Icons.inbox_outlined), selectedIcon: Icon(Icons.inbox), label: 'Inbox'),
+          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
+        ],
+      );
+}
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.onRetry});
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Text('Could not load outlet liquidity. Check API connection and outlet assignment.'),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
-          ]),
-        ),
+        child: ElevatedButton(onPressed: onRetry, child: const Text('Retry dashboard')),
       );
 }
