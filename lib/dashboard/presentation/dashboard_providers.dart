@@ -6,8 +6,10 @@ import '../../core/providers/app_cache.dart';
 import '../../core/providers/app_providers.dart';
 import '../data/outlet_dashboard_api.dart';
 import '../data/outlet_forecast_api.dart';
+import '../data/outlet_health_api.dart';
 import '../domain/outlet_dashboard.dart';
 import '../domain/outlet_forecast.dart';
+import '../domain/outlet_health.dart';
 
 const _pollInterval = Duration(seconds: 30);
 
@@ -30,4 +32,12 @@ final outletForecastApiProvider = Provider<OutletForecastApi>(
 
 final outletForecastProvider = FutureProvider.autoDispose.family<OutletForecast, String>(
   (ref, outletId) => ref.watch(outletForecastApiProvider).fetch(outletId),
+);
+
+final outletHealthApiProvider = Provider<OutletHealthApi>(
+  (ref) => OutletHealthApi(ref.watch(apiClientProvider)),
+);
+
+final outletHealthProvider = FutureProvider.autoDispose.family<OutletHealth, String>(
+  (ref, outletId) => ref.watch(outletHealthApiProvider).fetch(outletId),
 );

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/scope/session_scope.dart';
 import '../domain/outlet_dashboard.dart';
 import '../domain/outlet_forecast.dart';
+import '../domain/outlet_health.dart';
 import 'dashboard_providers.dart';
 import '../../outlets/domain/outlet_catalog_item.dart';
 import '../../outlets/presentation/outlet_providers.dart';
@@ -150,6 +151,8 @@ class _OutletCatalogContent extends StatelessWidget {
           _BalancesSection(outletId: selected.id),
           const SizedBox(height: 16),
           _ForecastSection(outletId: selected.id),
+          const SizedBox(height: 16),
+          _HealthSection(outletId: selected.id),
         ],
       );
 }
@@ -332,6 +335,45 @@ class _ForecastCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text('Data quality: ${forecast.dataQuality} · Confidence: ${(forecast.modelConfidence * 100).round()}%'),
+        ]),
+      ),
+    );
+  }
+}
+
+class _HealthSection extends ConsumerWidget {
+  const _HealthSection({required this.outletId});
+  final String outletId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final health = ref.watch(outletHealthProvider(outletId));
+    return health.when(
+      loading: () => const Card(child: Padding(padding: EdgeInsets.all(20), child: Center(child: CircularProgressIndicator()))),
+      error: (_, __) => Card(child: Padding(padding: const EdgeInsets.all(20), child: OutlinedButton(onPressed: () => ref.invalidate(outletHealthProvider(outletId)), child: const Text('Retry telemetry')))),
+      data: (value) => _HealthCard(health: value),
+    );
+  }
+}
+
+class _HealthCard extends StatelessWidget {
+  const _HealthCard({required this.health});
+  final OutletHealth health;
+
+  @override
+  Widget build(BuildContext context) {
+    final quality = health.dataQuality.toUpperCase();
+    final color = quality == 'UNRELIABLE' ? AppPalette.error : quality == 'DEGRADED' ? AppPalette.secondary : AppPalette.success;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Data telemetry', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          Chip(backgroundColor: color, label: Text(quality, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700))),
+          const SizedBox(height: 12),
+          Text('Model confidence: ${(health.modelConfidence * 100).round()}%'),
+          Text('Unusual activity signals: ${health.unusualActivityCount}'),
         ]),
       ),
     );
