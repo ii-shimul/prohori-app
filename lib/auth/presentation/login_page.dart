@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/config/app_environment.dart';
 import '../../core/providers/app_providers.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -16,12 +15,8 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(
-    text: AppEnvironment.useDemoData ? 'agent@prohori.demo' : '',
-  );
-  final _passwordController = TextEditingController(
-    text: AppEnvironment.useDemoData ? 'demo-password' : '',
-  );
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   bool _submitting = false;
   Object? _submissionError;
@@ -89,10 +84,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        AppEnvironment.useDemoData
-                            ? 'Demo account is ready to use.'
-                            : 'Use your assigned outlet account.',
+                      const Text(
+                        'Use your assigned outlet account.',
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: Color(0xFF687173)),
                       ),

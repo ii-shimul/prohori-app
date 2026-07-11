@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 
 import '../../core/network/api_client.dart';
-import '../../core/config/app_environment.dart';
 import '../domain/outlet_dashboard.dart';
 
 class OutletDashboardApi {
@@ -10,23 +9,6 @@ class OutletDashboardApi {
   final ApiClient _apiClient;
 
   Future<OutletDashboard> fetch(String outletId) async {
-    if (AppEnvironment.useDemoData) {
-      return OutletDashboard.fromJson(const {
-        'sharedPhysicalCash': {'amount': 125000, 'currency': 'BDT'},
-        'providerEMoneyBalances': [
-          {'provider': 'bKash', 'balance': {'amount': 25400, 'currency': 'BDT'}},
-          {'provider': 'Nagad', 'balance': {'amount': 18200, 'currency': 'BDT'}},
-          {'provider': 'Rocket', 'balance': {'amount': 9850, 'currency': 'BDT'}},
-        ],
-        'freshness': 'Demo data · refreshed now',
-        'dataQuality': 'good',
-      }, const {
-        'limitingResource': 'bKash e-money is the limiting resource.',
-        'limitingProvider': 'bKash',
-        'depletionEtaMinutes': 30,
-        'summary': 'bKash e-money may deplete in about 30 minutes.',
-      });
-    }
     final responses = await Future.wait([
       _apiClient.get<Map<String, dynamic>>('/outlets/$outletId/balances'),
       _apiClient.get<Map<String, dynamic>>('/outlets/$outletId/forecasts'),

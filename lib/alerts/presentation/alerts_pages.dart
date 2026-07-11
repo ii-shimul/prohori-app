@@ -148,30 +148,14 @@ class _AlertEvidencePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            _VelocityCard(severity: alert.severity),
-            const SizedBox(height: 16),
-            _ContextCard(
-              icon: Icons.psychology_outlined,
-              title: 'AI context',
-              accent: const Color(0xFFC9D5EE),
-              child: const Text(
-                'Possible normal explanation: activity may be approaching a known local market peak. Review recent outlet context before escalation.',
+            const _EvidenceCard(
+              icon: Icons.fact_check_outlined,
+              title: 'Evidence',
+              child: Text(
+                'Backend evidence will appear here when alert-detail mapping is connected.',
                 style: TextStyle(fontSize: 16, height: 1.5),
               ),
             ),
-            const SizedBox(height: 16),
-            _ContextCard(
-              icon: Icons.verified_user_outlined,
-              title: 'Recommendation',
-              accent: AppPalette.success,
-              fill: const Color(0xFFE5F6F4),
-              child: const Text(
-                'Safe action: verify the physical cash count and confirm the next batch with authorized operations.',
-                style: TextStyle(fontSize: 16, height: 1.5),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const _FlaggedTransactions(),
           ],
         ),
       );
@@ -210,134 +194,6 @@ class _EvidenceCard extends StatelessWidget {
             child,
           ]),
         ),
-      );
-}
-
-class _VelocityCard extends StatelessWidget {
-  const _VelocityCard({required this.severity});
-  final String severity;
-
-  @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              const Icon(Icons.bar_chart_outlined),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  'Velocity context',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                ),
-              ),
-              Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                const Text('Confidence', style: TextStyle(color: AppPalette.inkMuted)),
-                Text('94%', style: TextStyle(color: AppPalette.success, fontSize: 24, fontWeight: FontWeight.w800)),
-              ]),
-            ]),
-            const SizedBox(height: 24),
-            SizedBox(
-              height: 150,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: const [
-                  _Bar(height: 38, label: 'T-4'),
-                  _Bar(height: 58, label: 'T-3'),
-                  _Bar(height: 50, label: 'T-2'),
-                  _Bar(height: 78, label: 'T-1'),
-                  _Bar(height: 128, label: 'NOW', critical: true),
-                ],
-              ),
-            ),
-            const Divider(),
-            const Wrap(spacing: 16, children: [
-              _Legend(color: AppPalette.border, label: 'Baseline average'),
-              _Legend(color: AppPalette.error, label: 'Actual velocity'),
-            ]),
-          ]),
-        ),
-      );
-}
-
-class _Bar extends StatelessWidget {
-  const _Bar({required this.height, required this.label, this.critical = false});
-  final double height;
-  final String label;
-  final bool critical;
-  @override
-  Widget build(BuildContext context) => Expanded(
-        child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-          Container(
-            height: height,
-            width: 38,
-            decoration: BoxDecoration(
-              color: critical ? AppPalette.error : AppPalette.border,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(label, style: TextStyle(color: critical ? AppPalette.error : AppPalette.inkMuted, fontSize: 11, fontWeight: FontWeight.w700)),
-        ]),
-      );
-}
-
-class _Legend extends StatelessWidget {
-  const _Legend({required this.color, required this.label});
-  final Color color;
-  final String label;
-  @override
-  Widget build(BuildContext context) => Row(mainAxisSize: MainAxisSize.min, children: [
-        CircleAvatar(radius: 7, backgroundColor: color),
-        const SizedBox(width: 6),
-        Text(label),
-      ]);
-}
-
-class _ContextCard extends StatelessWidget {
-  const _ContextCard({required this.icon, required this.title, required this.accent, required this.child, this.fill});
-  final IconData icon;
-  final String title;
-  final Color accent;
-  final Color? fill;
-  final Widget child;
-  @override
-  Widget build(BuildContext context) => Card(
-        color: fill,
-        child: Container(
-          decoration: BoxDecoration(border: Border(left: BorderSide(color: accent, width: 4))),
-          padding: const EdgeInsets.all(20),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [Icon(icon, color: accent), const SizedBox(width: 8), Text(title.toUpperCase(), style: TextStyle(color: accent, fontWeight: FontWeight.w800, letterSpacing: 1.1))]),
-            const SizedBox(height: 12),
-            child,
-          ]),
-        ),
-      );
-}
-
-class _FlaggedTransactions extends StatelessWidget {
-  const _FlaggedTransactions();
-  @override
-  Widget build(BuildContext context) => Card(
-        clipBehavior: Clip.antiAlias,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const ListTile(
-            leading: Icon(Icons.list_alt_outlined),
-            title: Text('Flagged transactions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-          ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: const [DataColumn(label: Text('Time')), DataColumn(label: Text('Amount')), DataColumn(label: Text('Ref'))],
-              rows: const [
-                DataRow(cells: [DataCell(Text('10:14 AM')), DataCell(Text('BDT 19,000')), DataCell(Text('TXN-882A'))]),
-                DataRow(cells: [DataCell(Text('10:12 AM')), DataCell(Text('BDT 19,000')), DataCell(Text('TXN-881F'))]),
-                DataRow(cells: [DataCell(Text('10 earlier transactions')), DataCell(Text('')), DataCell(Text(''))]),
-              ],
-            ),
-          ),
-        ]),
       );
 }
 

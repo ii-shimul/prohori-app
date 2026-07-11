@@ -16,7 +16,7 @@ class ProfilePage extends ConsumerWidget {
     final strings = AppLocalizations.of(context)!;
     final locale = ref.watch(localeProvider);
     final user = ref.watch(authNotifierProvider).value?.user;
-    final email = user?.email ?? 'agent@prohori.demo';
+    final email = user?.email ?? 'Signed-in user';
     final name = email.startsWith('agent@') ? 'Outlet Agent' : email.split('@').first;
 
     return Scaffold(
@@ -26,12 +26,6 @@ class ProfilePage extends ConsumerWidget {
           SizedBox(width: 8),
           Text('PROHORI', style: TextStyle(fontWeight: FontWeight.w800)),
         ]),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Center(child: Text('ID: 4829 | DHAKA')),
-          ),
-        ],
       ),
       bottomNavigationBar: _ProfileNavigation(
         onDestinationSelected: (index) {
@@ -55,7 +49,7 @@ class ProfilePage extends ConsumerWidget {
               const _StaticSettingRow(
                 icon: Icons.sync_outlined,
                 title: 'Data freshness',
-                value: 'Last sync: just now',
+                value: 'Available after outlet health loads',
               ),
               const Divider(height: 1),
               _LanguageRow(
@@ -134,7 +128,7 @@ class _IdentityCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Wrap(spacing: 8, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
                     Text(email, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    const Chip(label: Text('OUTLET_AGENT')),
+                    const Chip(label: Text('Authenticated session')),
                   ]),
                 ],
               ),

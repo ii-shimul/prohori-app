@@ -23,15 +23,6 @@ class OutletDashboardPage extends ConsumerWidget {
             Text('PROHORI', style: TextStyle(fontWeight: FontWeight.w800)),
           ],
         ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Chip(
-              avatar: Icon(Icons.circle, size: 10, color: AppPalette.success),
-              label: Text('SYNCED'),
-            ),
-          ),
-        ],
       ),
       bottomNavigationBar: _DashboardNavigation(
         onDestinationSelected: (index) {
@@ -131,7 +122,6 @@ class _CashCard extends StatelessWidget {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                 ),
               ),
-              const Chip(label: Text('VAULT A')),
             ]),
             const SizedBox(height: 24),
             Text(

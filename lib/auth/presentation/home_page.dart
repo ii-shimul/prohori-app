@@ -10,9 +10,9 @@ class HomePage extends ConsumerWidget {
   const HomePage({super.key});
   @override Widget build(BuildContext context, WidgetRef ref) {
     ref.listen<AsyncValue<AuthState>>(authNotifierProvider, (_, next) { if (next.value?.status == AuthStatus.unauthenticated) context.go('/login'); });
-    final email = ref.watch(authNotifierProvider).value?.user?.email ?? 'agent@prohori.demo';
+    final email = ref.watch(authNotifierProvider).value?.user?.email ?? 'Signed-in user';
     return Scaffold(
-      appBar: AppBar(title: const Row(children: [Icon(Icons.shield_outlined), SizedBox(width: 8), Text('PROHORI', style: TextStyle(fontWeight: FontWeight.w800))]), actions: const [Padding(padding: EdgeInsets.only(right: 16), child: Center(child: Text('ID: 4829 | DHAKA')))]),
+      appBar: AppBar(title: const Row(children: [Icon(Icons.shield_outlined), SizedBox(width: 8), Text('PROHORI', style: TextStyle(fontWeight: FontWeight.w800))])),
       bottomNavigationBar: NavigationBar(selectedIndex: 0, onDestinationSelected: (index) { switch (index) { case 1: context.go('/alerts'); case 2: context.go('/inbox'); case 3: context.go('/profile'); } }, destinations: const [NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Dashboard'), NavigationDestination(icon: Icon(Icons.notifications_outlined), selectedIcon: Icon(Icons.notifications), label: 'Alerts'), NavigationDestination(icon: Icon(Icons.inbox_outlined), selectedIcon: Icon(Icons.inbox), label: 'Inbox'), NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile')]),
       body: ListView(padding: const EdgeInsets.all(16), children: [
         Card(child: Padding(padding: const EdgeInsets.all(20), child: Row(children: [const CircleAvatar(radius: 32, backgroundColor: AppPalette.primary, foregroundColor: Colors.white, child: Icon(Icons.storefront_outlined, size: 30)), const SizedBox(width: 16), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Outlet command center', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)), const SizedBox(height: 6), Text(email, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppPalette.inkMuted))]))]))),

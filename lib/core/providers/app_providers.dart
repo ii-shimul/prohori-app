@@ -10,6 +10,7 @@ import '../../auth/presentation/auth_notifier.dart' as local_auth;
 import '../config/app_environment.dart';
 import '../network/api_client.dart';
 import '../network/auth_token_interceptor.dart';
+import '../network/request_metadata_interceptor.dart';
 
 final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
   return const FlutterSecureStorage();
@@ -31,8 +32,16 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 final dioClientProvider = Provider<Dio>((ref) {
-  final dio = Dio(BaseOptions(baseUrl: AppEnvironment.apiBaseUrl));
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: AppEnvironment.apiBaseUrl,
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 20),
+      sendTimeout: const Duration(seconds: 20),
+    ),
+  );
   dio.interceptors.add(AuthTokenInterceptor(ref.watch(supabaseClientProvider)));
+  dio.interceptors.add(RequestMetadataInterceptor());
   return dio;
 });
 

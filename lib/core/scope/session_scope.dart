@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../config/app_environment.dart';
 import '../network/api_client.dart';
 import '../providers/app_providers.dart';
 
@@ -32,13 +31,6 @@ class SessionScopeApi {
   final ApiClient _apiClient;
 
   Future<SessionScope> fetch() async {
-    if (AppEnvironment.useDemoData) {
-      return SessionScope(
-        userId: 'demo-agent',
-        role: 'OUTLET_AGENT',
-        outletIds: [AppEnvironment.demoOutletId],
-      );
-    }
     final response = await _apiClient.get<Map<String, dynamic>>('/me');
     return SessionScope.fromJson(response.data ?? const <String, dynamic>{});
   }

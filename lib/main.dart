@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'auth/data/secure_auth_storage.dart';
 import 'l10n/app_localizations.dart';
@@ -15,6 +16,7 @@ import 'theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
+    await dotenv.load(fileName: '.env');
     AppEnvironment.validate();
 
     final secureStorage = const FlutterSecureStorage();
@@ -53,8 +55,8 @@ class StartupErrorApp extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.all(24),
             child: Text(
-              'App startup failed. Run with SUPABASE_URL and '
-              'SUPABASE_PUBLISHABLE_KEY in dart-define values.',
+              'App startup failed. Set SUPABASE_URL and '
+              'SUPABASE_PUBLISHABLE_KEY in prohori-app/.env.',
               textAlign: TextAlign.center,
             ),
           ),
