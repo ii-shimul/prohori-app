@@ -45,3 +45,5 @@ i got the real env value, i added them in backend, do i need to add them in fron
 it worked when i flutter run with the env, but it supposed to live in the root with the .env file, so that every time i do flutter run  and try to login the app should take the env value and verify the auth" i think currently we dont installed env in app , do that for me
 
 commit -10 we have successfully completed phase 0 , now we gonna start our phase 1, we wont keep any demo data, backend is the only source of the truth, we successfully added real supabaseurl and publishable key in .env, our auth login has been succssful as well" let's begin phase 1
+
+commit-11 we completed phase 1 and tested properly, now we need to connect phase 1 with phase 2,3 , lets complete the phase 2 and phase 3 according our plan

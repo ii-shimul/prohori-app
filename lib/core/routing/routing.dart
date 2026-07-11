@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -29,6 +30,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (!signedIn) return isPublicRoute ? null : '/login';
       return isPublicRoute ? '/home' : null;
     },
+    errorBuilder: (context, state) => Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            'Navigation could not be completed. ${state.error ?? ''}',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    ),
     routes: [
       GoRoute(
         path: '/splash',

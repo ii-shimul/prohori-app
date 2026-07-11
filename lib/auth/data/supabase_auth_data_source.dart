@@ -13,6 +13,21 @@ class SupabaseAuthDataSource {
 
   AuthUser? get currentUser => _toAuthUser(_client.auth.currentUser);
 
+  Future<AuthUser?> restoreSessionUser() async {
+    var session = _client.auth.currentSession;
+    if (session == null) return null;
+
+    if (_needsRefresh(session)) {
+      try {
+        session = (await _client.auth.refreshSession()).session;
+      } catch (_) {
+        await _client.auth.signOut();
+        return null;
+      }
+    }
+    return _toAuthUser(session?.user);
+  }
+
   Future<AuthUser> signInWithSeededCredentials({
     required String email,
     required String password,
@@ -27,6 +42,13 @@ class SupabaseAuthDataSource {
   }
 
   Future<void> signOut() => _client.auth.signOut();
+
+  bool _needsRefresh(Session session) {
+    final expiresAt = session.expiresAt;
+    if (expiresAt == null) return false;
+    final expiry = DateTime.fromMillisecondsSinceEpoch(expiresAt * 1000);
+    return !expiry.isAfter(DateTime.now().add(const Duration(minutes: 1)));
+  }
 
   AuthUser? _toAuthUser(User? user) {
     if (user == null) return null;

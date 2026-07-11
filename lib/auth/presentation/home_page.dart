@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/localization/locale_provider.dart';
+import '../../core/network/api_failure.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/scope/session_scope.dart';
+import '../../outlets/domain/outlet_catalog_item.dart';
+import '../../outlets/presentation/outlet_providers.dart';
 import '../../theme.dart';
 import 'auth_notifier.dart';
 
@@ -46,20 +49,44 @@ class HomePage extends ConsumerWidget {
       ),
       body: scope.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => _ScopeError(
+        error: (error, _) => _ScopeError(
+          error: error,
           onRetry: () => ref.invalidate(sessionScopeProvider),
         ),
         data: (session) => session.outletIds.isEmpty
             ? const _NoOutletAssignment()
-            : _HomeContent(email: email),
+            : _CatalogHome(email: email),
       ),
     );
   }
 }
 
-class _HomeContent extends StatelessWidget {
-  const _HomeContent({required this.email});
+class _CatalogHome extends ConsumerWidget {
+  const _CatalogHome({required this.email});
   final String email;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final outlets = ref.watch(outletCatalogProvider);
+    return outlets.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) => Center(
+        child: ElevatedButton(
+          onPressed: () => ref.invalidate(outletCatalogProvider),
+          child: const Text('Retry outlet catalog'),
+        ),
+      ),
+      data: (items) => items.isEmpty
+          ? const _NoOutletAssignment()
+          : _HomeContent(email: email, outlet: items.first),
+    );
+  }
+}
+
+class _HomeContent extends StatelessWidget {
+  const _HomeContent({required this.email, required this.outlet});
+  final String email;
+  final OutletCatalogItem outlet;
 
   @override
   Widget build(BuildContext context) => ListView(
@@ -91,6 +118,13 @@ class _HomeContent extends StatelessWidget {
                         const SizedBox(height: 6),
                         Text(
                           email,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: AppPalette.inkMuted),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${outlet.name} · ${outlet.area.name}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(color: AppPalette.inkMuted),
@@ -163,16 +197,34 @@ class _NoOutletAssignment extends StatelessWidget {
 }
 
 class _ScopeError extends StatelessWidget {
-  const _ScopeError({required this.onRetry});
+  const _ScopeError({required this.error, required this.onRetry});
+  final Object error;
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) => Center(
-        child: ElevatedButton(
-          onPressed: onRetry,
-          child: const Text('Retry account scope'),
+  Widget build(BuildContext context) {
+    final detail = switch (error) {
+      ApiFailure failure => '${failure.code}: ${failure.message}'
+          '${failure.correlationId == null ? '' : '\nReference: ${failure.correlationId}'}',
+      _ => 'Unable to load account scope. Check connection and try again.',
+    };
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(detail, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: onRetry,
+              child: const Text('Retry account scope'),
+            ),
+          ],
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _HomeNavigation extends StatelessWidget {

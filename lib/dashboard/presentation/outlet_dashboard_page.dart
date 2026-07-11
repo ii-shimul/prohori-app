@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/scope/session_scope.dart';
-import '../../theme.dart';
 import '../domain/outlet_dashboard.dart';
 import 'dashboard_providers.dart';
+import '../../outlets/domain/outlet_catalog_item.dart';
+import '../../outlets/presentation/outlet_providers.dart';
+import '../../theme.dart';
 
 class OutletDashboardPage extends ConsumerWidget {
   const OutletDashboardPage({super.key});
@@ -13,7 +15,6 @@ class OutletDashboardPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scope = ref.watch(sessionScopeProvider);
-
     return Scaffold(
       appBar: AppBar(
         title: const Row(
@@ -38,267 +39,250 @@ class OutletDashboardPage extends ConsumerWidget {
       ),
       body: scope.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => _ErrorView(onRetry: () => ref.invalidate(sessionScopeProvider)),
-        data: (scope) => scope.primaryOutletId == null
-            ? const Center(child: Text('No outlet assignment is available.'))
-            : _ScopedDashboard(outletId: scope.primaryOutletId!),
+        error: (_, __) => _RetryView(
+          label: 'Retry account scope',
+          onRetry: () => ref.invalidate(sessionScopeProvider),
+        ),
+        data: (scope) => scope.outletIds.isEmpty
+            ? const _NoOutletAssignment()
+            : const _OutletCatalogDashboard(),
       ),
     );
   }
 }
 
-class _ScopedDashboard extends ConsumerWidget {
-  const _ScopedDashboard({required this.outletId});
-  final String outletId;
+class _OutletCatalogDashboard extends ConsumerWidget {
+  const _OutletCatalogDashboard();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dashboard = ref.watch(outletDashboardProvider(outletId));
-    return dashboard.when(
+    final outlets = ref.watch(outletCatalogProvider);
+    return outlets.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => _ErrorView(onRetry: () => ref.invalidate(outletDashboardProvider(outletId))),
-      data: (poll) => poll.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => _ErrorView(onRetry: () => ref.invalidate(outletDashboardProvider(outletId))),
-        data: (data) => RefreshIndicator(
-          onRefresh: () async => ref.invalidate(outletDashboardProvider(outletId)),
-          child: _DashboardContent(data: data),
-        ),
+      error: (_, __) => _RetryView(
+        label: 'Retry outlet catalog',
+        onRetry: () => ref.invalidate(outletCatalogProvider),
       ),
+      data: (items) {
+        if (items.isEmpty) return const _NoOutletAssignment();
+        final selectedId = ref.watch(selectedOutletIdProvider);
+        final selectedItems = items.where((item) => item.id == selectedId);
+        final selected = selectedItems.isEmpty ? items.first : selectedItems.first;
+        return _OutletCatalogContent(
+          outlets: items,
+          selected: selected,
+          onSelected: (id) => ref.read(selectedOutletIdProvider.notifier).select(id),
+        );
+      },
     );
   }
 }
 
-class _DashboardContent extends StatelessWidget {
-  const _DashboardContent({required this.data});
-  final OutletDashboard data;
+class _OutletCatalogContent extends StatelessWidget {
+  const _OutletCatalogContent({
+    required this.outlets,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final List<OutletCatalogItem> outlets;
+  final OutletCatalogItem selected;
+  final ValueChanged<String> onSelected;
 
   @override
   Widget build(BuildContext context) => ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _CashCard(value: data.sharedPhysicalCash, freshness: data.freshness),
-          const SizedBox(height: 16),
-          ...data.providerEMoneyBalances.map(
-            (balance) => Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _EMoneyCard(balance: balance),
+          if (outlets.length > 1) ...[
+            DropdownButtonFormField<String>(
+              value: selected.id,
+              decoration: const InputDecoration(labelText: 'Assigned outlet'),
+              items: outlets
+                  .map(
+                    (outlet) => DropdownMenuItem(
+                      value: outlet.id,
+                      child: Text(
+                        outlet.name,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
+                  .toList(growable: false),
+              onChanged: (id) {
+                if (id != null) onSelected(id);
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    selected.name,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${selected.code} · ${selected.area.name}',
+                    style: const TextStyle(color: AppPalette.inkMuted),
+                  ),
+                  const SizedBox(height: 20),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      Chip(label: Text('Status: ${selected.status}')),
+                      Chip(label: Text('Tier ${selected.tier}')),
+                      Chip(label: Text(selected.timezone)),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 16),
-          _DepletionCard(
-            summary: data.forecastSummary,
-            provider: data.limitingProvider,
-            etaMinutes: data.depletionEtaMinutes,
-          ),
-          const SizedBox(height: 16),
-          _ConstraintCard(
-            value: data.limitingProvider == null
-                ? data.limitingResource
-                : '${data.limitingProvider} e-money · ${data.depletionEtaMinutes ?? '?'} mins remaining',
-          ),
-          const SizedBox(height: 16),
-          _TelemetryCard(quality: data.dataQuality, freshness: data.freshness),
-          const SizedBox(height: 80),
+          _BalancesSection(outletId: selected.id),
         ],
       );
 }
 
-class _CashCard extends StatelessWidget {
-  const _CashCard({required this.value, required this.freshness});
-  final MoneyAmount value;
-  final String freshness;
+class _BalancesSection extends ConsumerWidget {
+  const _BalancesSection({required this.outletId});
+  final String outletId;
 
   @override
-  Widget build(BuildContext context) => Card(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final balances = ref.watch(outletBalancesProvider(outletId));
+    return balances.when(
+      loading: () => const Card(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (_, __) => Card(
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              const Icon(Icons.payments_outlined),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  'Shared physical cash',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Balances could not be loaded.'),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => ref.invalidate(outletBalancesProvider(outletId)),
+                child: const Text('Retry balances'),
               ),
-            ]),
-            const SizedBox(height: 24),
-            Text(
-              '${value.currency} ${value.amount}',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: AppPalette.primary,
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              freshness,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AppPalette.inkMuted),
-            ),
-          ]),
-        ),
-      );
-}
-
-class _EMoneyCard extends StatelessWidget {
-  const _EMoneyCard({required this.balance});
-  final ProviderEMoneyBalance balance;
-
-  @override
-  Widget build(BuildContext context) => Card(
-        child: ListTile(
-          contentPadding: const EdgeInsets.all(20),
-          title: Text(
-            balance.provider,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-          ),
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 20),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text(
-                'E-MONEY BALANCE',
-                style: TextStyle(
-                  fontSize: 11,
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.w800,
-                  color: AppPalette.inkMuted,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '${balance.amount.currency} ${balance.amount.amount}',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: AppPalette.secondary,
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-            ]),
-          ),
-          trailing: const Chip(
-            avatar: Icon(Icons.link, size: 16),
-            label: Text('CONNECTED'),
-          ),
-        ),
-      );
-}
-
-class _DepletionCard extends StatelessWidget {
-  const _DepletionCard({
-    required this.summary,
-    required this.provider,
-    required this.etaMinutes,
-  });
-  final String summary;
-  final String? provider;
-  final int? etaMinutes;
-
-  @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.timeline_outlined),
-              title: Text(
-                'Depletion horizon',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFE9E7),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Icon(Icons.warning_amber_rounded, color: AppPalette.error),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    provider == null || etaMinutes == null
-                        ? summary
-                        : '$provider may deplete in $etaMinutes mins. $summary',
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ]),
-            ),
-          ]),
-        ),
-      );
-}
-
-class _ConstraintCard extends StatelessWidget {
-  const _ConstraintCard({required this.value});
-  final String value;
-
-  @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(children: [
-            const CircleAvatar(
-              radius: 28,
-              backgroundColor: AppPalette.extraSurface,
-              child: Icon(Icons.account_balance_wallet_outlined),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'CURRENT CONSTRAINT',
-              style: TextStyle(
-                fontSize: 11,
-                letterSpacing: 1.2,
-                fontWeight: FontWeight.w800,
-                color: AppPalette.inkMuted,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-            ),
-          ]),
-        ),
-      );
-}
-
-class _TelemetryCard extends StatelessWidget {
-  const _TelemetryCard({required this.quality, required this.freshness});
-  final String quality;
-  final String freshness;
-
-  @override
-  Widget build(BuildContext context) {
-    final normalized = quality.toLowerCase();
-    final color = normalized == 'critical'
-        ? AppPalette.error
-        : normalized == 'degraded'
-            ? AppPalette.primary
-            : AppPalette.success;
-    return Card(
-      color: AppPalette.surface,
-      child: ListTile(
-        leading: const Icon(Icons.sensors_outlined),
-        title: const Text('Data telemetry'),
-        subtitle: Text(freshness, maxLines: 1, overflow: TextOverflow.ellipsis),
-        trailing: Chip(
-          backgroundColor: color,
-          label: Text(
-            normalized.toUpperCase(),
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+            ],
           ),
         ),
       ),
+      data: (value) => _BalanceCards(balances: value),
     );
   }
+}
+
+class _BalanceCards extends StatelessWidget {
+  const _BalanceCards({required this.balances});
+  final OutletBalances balances;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.payments_outlined),
+                      SizedBox(width: 12),
+                      Text(
+                        'Shared physical cash',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    balances.sharedCash.formattedBdt,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          color: AppPalette.primary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (balances.providerEMoney.isEmpty)
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Text('No provider e-money balances were returned.'),
+              ),
+            )
+          else
+            ...balances.providerEMoney.map(
+              (balance) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Card(
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(20),
+                    title: Text(
+                      balance.providerName,
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                    ),
+                    subtitle: Text(
+                      balance.providerCode,
+                      style: const TextStyle(color: AppPalette.inkMuted),
+                    ),
+                    trailing: Text(
+                      balance.amount.formattedBdt,
+                      style: const TextStyle(
+                        color: AppPalette.secondary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+}
+
+class _NoOutletAssignment extends StatelessWidget {
+  const _NoOutletAssignment();
+
+  @override
+  Widget build(BuildContext context) => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'No active outlet assignment is available for this account.',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+}
+
+class _RetryView extends StatelessWidget {
+  const _RetryView({required this.label, required this.onRetry});
+  final String label;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: ElevatedButton(onPressed: onRetry, child: Text(label)),
+      );
 }
 
 class _DashboardNavigation extends StatelessWidget {
@@ -310,20 +294,26 @@ class _DashboardNavigation extends StatelessWidget {
         selectedIndex: 0,
         onDestinationSelected: onDestinationSelected,
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Dashboard'),
-          NavigationDestination(icon: Icon(Icons.notifications_outlined), selectedIcon: Icon(Icons.notifications), label: 'Alerts'),
-          NavigationDestination(icon: Icon(Icons.inbox_outlined), selectedIcon: Icon(Icons.inbox), label: 'Inbox'),
-          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
+          NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.notifications_outlined),
+            selectedIcon: Icon(Icons.notifications),
+            label: 'Alerts',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.inbox_outlined),
+            selectedIcon: Icon(Icons.inbox),
+            label: 'Inbox',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
-      );
-}
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.onRetry});
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) => Center(
-        child: ElevatedButton(onPressed: onRetry, child: const Text('Retry dashboard')),
       );
 }

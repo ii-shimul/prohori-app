@@ -37,7 +37,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     _subscription = _repository.authStateChanges.listen(_onAuthChanged);
     ref.onDispose(() => _subscription?.cancel());
 
-    final user = _repository.currentUser;
+    final user = await _repository.restoreSessionUser();
     return user == null
         ? const AuthState.unauthenticated()
         : AuthState.authenticated(user);

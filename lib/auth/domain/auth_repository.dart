@@ -13,7 +13,7 @@ class AuthRepository {
   final SecureAuthStorage _secureStorage;
 
   Stream<AuthUser?> get authStateChanges => _dataSource.authStateChanges;
-  AuthUser? get currentUser => _dataSource.currentUser;
+  Future<AuthUser?> restoreSessionUser() => _dataSource.restoreSessionUser();
 
   Future<AuthUser> login({required String email, required String password}) {
     return _dataSource.signInWithSeededCredentials(
