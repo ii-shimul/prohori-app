@@ -169,6 +169,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Action could not be completed. Try again.'**
   String get actionFailed;
+
+  /// No description provided for @inbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox'**
+  String get inbox;
+
+  /// No description provided for @profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profile;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get signOut;
+
+  /// No description provided for @telemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Data telemetry'**
+  String get telemetry;
+
+  /// No description provided for @dataGood.
+  ///
+  /// In en, this message translates to:
+  /// **'GOOD'**
+  String get dataGood;
+
+  /// No description provided for @dataDegraded.
+  ///
+  /// In en, this message translates to:
+  /// **'DEGRADED'**
+  String get dataDegraded;
+
+  /// No description provided for @dataCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'CRITICAL'**
+  String get dataCritical;
 }
 
 class _AppLocalizationsDelegate

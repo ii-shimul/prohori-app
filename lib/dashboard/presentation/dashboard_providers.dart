@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/app_providers.dart';
+import '../../core/providers/app_cache.dart';
 import '../data/outlet_dashboard_api.dart';
 import '../domain/outlet_dashboard.dart';
 
@@ -14,6 +15,7 @@ final outletDashboardApiProvider = Provider<OutletDashboardApi>((ref) {
 
 final outletDashboardProvider = StreamProvider.autoDispose
     .family<AsyncValue<OutletDashboard>, String>((ref, outletId) async* {
+  ref.watch(appCacheEpochProvider);
   while (true) {
     try {
       final dashboard = await ref.read(outletDashboardApiProvider).fetch(outletId);

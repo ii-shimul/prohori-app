@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../alerts/presentation/alerts_pages.dart';
 import '../../cases/presentation/case_detail_page.dart';
+import '../../inbox/presentation/inbox_page.dart';
+import '../../profile/presentation/profile_page.dart';
 import '../../auth/presentation/home_page.dart';
 import '../../dashboard/presentation/outlet_dashboard_page.dart';
 import '../../auth/presentation/login_page.dart';
@@ -40,6 +42,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/cases/:id',
         builder: (context, state) => CaseDetailPage(caseId: state.pathParameters['id']!),
       ),
+      GoRoute(path: '/inbox', builder: (context, state) => const InboxPage()),
+      GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
     ],
   );
 });

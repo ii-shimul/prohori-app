@@ -11,5 +11,13 @@
   "sendingNote": "Sending note…",
   "noteSent": "Note added to case timeline.",
   "timelineEmpty": "No timeline events yet.",
-  "actionFailed": "Action could not be completed. Try again."
+  "actionFailed": "Action could not be completed. Try again.",
+  "inbox": "Inbox",
+  "profile": "Profile",
+  "language": "Language",
+  "signOut": "Sign out",
+  "telemetry": "Data telemetry",
+  "dataGood": "GOOD",
+  "dataDegraded": "DEGRADED",
+  "dataCritical": "CRITICAL"
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/app_providers.dart';
+import '../../core/providers/app_cache.dart';
 import '../domain/auth_repository.dart';
 import '../domain/auth_user.dart';
 
@@ -58,6 +59,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     state = AsyncData(AuthState.loading(state.value?.user));
     try {
       await _repository.logout();
+      ref.read(appCacheEpochProvider.notifier).clear();
       state = const AsyncData(AuthState.unauthenticated());
     } catch (error) {
       state = AsyncData(AuthState.failure(error));

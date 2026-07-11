@@ -15,6 +15,7 @@ class OutletDashboardApi {
         'sharedPhysicalCash': {'amount': 125000, 'currency': 'BDT'},
         'providerEMoney': {'amount': 68000, 'currency': 'BDT'},
         'freshness': 'Demo data · refreshed now',
+        'dataQuality': 'good',
       }, const {
         'limitingResource': 'Provider e-money is the limiting resource.',
         'summary': 'Expected to remain sufficient for the next 4 hours.',

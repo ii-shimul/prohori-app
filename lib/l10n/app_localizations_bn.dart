@@ -44,4 +44,28 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get actionFailed => 'কাজটি সম্পন্ন হয়নি। আবার চেষ্টা করুন।';
+
+  @override
+  String get inbox => 'ইনবক্স';
+
+  @override
+  String get profile => 'প্রোফাইল';
+
+  @override
+  String get language => 'ভাষা';
+
+  @override
+  String get signOut => 'সাইন আউট';
+
+  @override
+  String get telemetry => 'ডেটা টেলিমেট্রি';
+
+  @override
+  String get dataGood => 'ভালো';
+
+  @override
+  String get dataDegraded => 'অবনমিত';
+
+  @override
+  String get dataCritical => 'গুরুতর';
 }

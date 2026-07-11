@@ -43,4 +43,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get actionFailed => 'Action could not be completed. Try again.';
+
+  @override
+  String get inbox => 'Inbox';
+
+  @override
+  String get profile => 'Profile';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get signOut => 'Sign out';
+
+  @override
+  String get telemetry => 'Data telemetry';
+
+  @override
+  String get dataGood => 'GOOD';
+
+  @override
+  String get dataDegraded => 'DEGRADED';
+
+  @override
+  String get dataCritical => 'CRITICAL';
 }

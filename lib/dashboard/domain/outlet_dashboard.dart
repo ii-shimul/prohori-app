@@ -21,6 +21,7 @@ class OutletDashboard {
     required this.limitingResource,
     required this.forecastSummary,
     required this.freshness,
+    required this.dataQuality,
   });
 
   final MoneyAmount sharedPhysicalCash;
@@ -28,6 +29,7 @@ class OutletDashboard {
   final String limitingResource;
   final String forecastSummary;
   final String freshness;
+  final String dataQuality;
 
   factory OutletDashboard.fromJson(
     Map<String, dynamic> balances,
@@ -49,6 +51,9 @@ class OutletDashboard {
       freshness: forecast['freshness'] as String? ??
           balances['freshness'] as String? ??
           'Latest API refresh',
+      dataQuality: forecast['dataQuality'] as String? ??
+          balances['dataQuality'] as String? ??
+          'good',
     );
   }
 }

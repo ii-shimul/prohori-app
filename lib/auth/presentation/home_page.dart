@@ -21,9 +21,14 @@ class HomePage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Prohori'),
         actions: [
+          IconButton(tooltip: 'Inbox', onPressed: () => context.go('/inbox'), icon: const Icon(Icons.inbox_outlined)),
+          IconButton(tooltip: 'Profile', onPressed: () => context.go('/profile'), icon: const Icon(Icons.person_outline)),
           IconButton(
             tooltip: 'Sign out',
-            onPressed: () => ref.read(authNotifierProvider.notifier).logout(),
+            onPressed: () async {
+              await ref.read(authNotifierProvider.notifier).logout();
+              if (context.mounted) context.go('/splash');
+            },
             icon: const Icon(Icons.logout),
           ),
         ],
