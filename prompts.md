@@ -55,3 +55,5 @@ commit -13 we have completed phase 4, lets start with phase 5
 commit -14 we have done our phase 5, lets start the phase 6 and complete the task without any issue
 
 commit -15 phase 6 completed successfully, lets complete the phase 7
+
+commit -16 we have completed the phase 7 ,  but there is some issue with time coverstion, minute conversation, " checkout it and fix it, make it lile 4:37 , 30 min

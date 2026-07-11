@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../theme.dart';
+import '../../core/formatting/time_format.dart';
 import '../../l10n/app_localizations.dart';
 import '../domain/outlet_alert.dart';
 import 'alerts_providers.dart';
@@ -122,7 +123,7 @@ class _AlertEvidencePage extends StatelessWidget {
               children: [
                 _SeverityBadge(severity: alert.severity),
                 Text(
-                  'Detected: ${_timeLabel(alert.createdAt)}',
+                  'Detected: ${TimeFormat.relative(alert.createdAt)}',
                   style: const TextStyle(color: AppPalette.inkMuted),
                 ),
               ],
@@ -157,11 +158,6 @@ class _AlertEvidencePage extends StatelessWidget {
         ),
       );
 
-  String _timeLabel(DateTime? value) {
-    if (value == null) return 'recently';
-    final elapsed = DateTime.now().difference(value).inMinutes;
-    return elapsed <= 1 ? 'just now' : '$elapsed mins ago';
-  }
 }
 
 class _EvidenceSnapshots extends StatelessWidget {
@@ -179,7 +175,7 @@ class _EvidenceSnapshots extends StatelessWidget {
                   const Icon(Icons.history_outlined, size: 18),
                   const SizedBox(width: 8),
                   Expanded(child: Text(snapshot.kind, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                  Text(snapshot.observedAt.toLocal().toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppPalette.inkMuted)),
+                  Text(TimeFormat.clock(snapshot.observedAt), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppPalette.inkMuted)),
                 ]),
               ))
           .toList(growable: false),
@@ -249,7 +245,7 @@ class _AlertCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 12),
-              Text('${alert.status} · ${alert.createdAt?.toLocal().toString() ?? 'Time unavailable'}', style: const TextStyle(color: AppPalette.inkMuted)),
+              Text('${alert.status} · ${TimeFormat.relative(alert.createdAt)}', style: const TextStyle(color: AppPalette.inkMuted)),
             ]),
           ),
         ),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../theme.dart';
+import '../../core/formatting/time_format.dart';
 import '../domain/case_detail.dart';
 import 'case_providers.dart';
 
@@ -129,7 +130,7 @@ class _TimelineEvent extends StatelessWidget {
             const SizedBox(height: 8),
             Text(event.description, maxLines: 5, overflow: TextOverflow.ellipsis),
             const SizedBox(height: 8),
-            Text(event.occurredAt?.toLocal().toString() ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppPalette.inkMuted)),
+            Text(event.occurredAt == null ? '' : TimeFormat.clock(event.occurredAt!), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppPalette.inkMuted)),
           ]),
         ),
       );
