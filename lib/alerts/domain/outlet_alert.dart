@@ -10,6 +10,7 @@ class OutletAlert {
     required this.episodeStartedAt,
     required this.dataQuality,
     required this.modelConfidence,
+    required this.evidenceSnapshots,
   });
 
   final String id;
@@ -22,6 +23,7 @@ class OutletAlert {
   final DateTime episodeStartedAt;
   final String dataQuality;
   final double modelConfidence;
+  final List<AlertEvidenceSnapshot> evidenceSnapshots;
 
   String get title => type.replaceAll('_', ' ');
   String get summary => messageKey;
@@ -46,8 +48,27 @@ class OutletAlert {
       episodeStartedAt: startedAt,
       dataQuality: _text(json, 'dataQuality'),
       modelConfidence: confidence.toDouble(),
+      evidenceSnapshots: _snapshots(json['evidenceSnapshots']),
     );
   }
+}
+
+class AlertEvidenceSnapshot {
+  const AlertEvidenceSnapshot({required this.kind, required this.observedAt});
+
+  final String kind;
+  final DateTime observedAt;
+}
+
+List<AlertEvidenceSnapshot> _snapshots(Object? value) {
+  if (value == null) return const [];
+  if (value is! List) throw const FormatException('Alert evidenceSnapshots is invalid.');
+  return value.whereType<Map>().map((item) {
+    final json = Map<String, dynamic>.from(item);
+    final observedAt = DateTime.tryParse(_text(json, 'observedAt'));
+    if (observedAt == null) throw const FormatException('Alert evidence observedAt is invalid.');
+    return AlertEvidenceSnapshot(kind: _text(json, 'kind'), observedAt: observedAt);
+  }).toList(growable: false);
 }
 
 String _text(Map<String, dynamic> json, String key) {

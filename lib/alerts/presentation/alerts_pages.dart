@@ -148,13 +148,10 @@ class _AlertEvidencePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const _EvidenceCard(
+            _EvidenceCard(
               icon: Icons.fact_check_outlined,
               title: 'Evidence',
-              child: Text(
-                'Backend evidence will appear here when alert-detail mapping is connected.',
-                style: TextStyle(fontSize: 16, height: 1.5),
-              ),
+              child: _EvidenceSnapshots(snapshots: alert.evidenceSnapshots),
             ),
           ],
         ),
@@ -164,6 +161,29 @@ class _AlertEvidencePage extends StatelessWidget {
     if (value == null) return 'recently';
     final elapsed = DateTime.now().difference(value).inMinutes;
     return elapsed <= 1 ? 'just now' : '$elapsed mins ago';
+  }
+}
+
+class _EvidenceSnapshots extends StatelessWidget {
+  const _EvidenceSnapshots({required this.snapshots});
+  final List<AlertEvidenceSnapshot> snapshots;
+
+  @override
+  Widget build(BuildContext context) {
+    if (snapshots.isEmpty) return const Text('No evidence snapshots were returned for this alert.');
+    return Column(
+      children: snapshots
+          .map((snapshot) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(children: [
+                  const Icon(Icons.history_outlined, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(snapshot.kind, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  Text(snapshot.observedAt.toLocal().toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppPalette.inkMuted)),
+                ]),
+              ))
+          .toList(growable: false),
+    );
   }
 }
 

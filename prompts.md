@@ -53,3 +53,5 @@ commit -12 can we start our phase 4? or we reamin any unfinshed work in privious
 commit -13 we have completed phase 4, lets start with phase 5
 
 commit -14 we have done our phase 5, lets start the phase 6 and complete the task without any issue
+
+commit -15 phase 6 completed successfully, lets complete the phase 7
