@@ -33,3 +33,5 @@ commit -5: update the profile,home,inbox,alert screen ui design only using mater
 
 
 commit -6: inject smoke test to ensure everything's alright, and provide updated audit' what we done , what need to done
+
+commit -7: findout the gaps and missing features by compare with backend 

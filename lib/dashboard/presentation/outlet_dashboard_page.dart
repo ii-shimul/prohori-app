@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/config/app_environment.dart';
+import '../../core/scope/session_scope.dart';
 import '../../theme.dart';
 import '../domain/outlet_dashboard.dart';
 import 'dashboard_providers.dart';
@@ -12,7 +12,7 @@ class OutletDashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dashboard = ref.watch(outletDashboardProvider(AppEnvironment.outletId));
+    final scope = ref.watch(sessionScopeProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -45,26 +45,32 @@ class OutletDashboardPage extends ConsumerWidget {
           }
         },
       ),
-      body: dashboard.when(
+      body: scope.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => _ErrorView(
-          onRetry: () => ref.invalidate(
-            outletDashboardProvider(AppEnvironment.outletId),
-          ),
-        ),
-        data: (poll) => poll.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => _ErrorView(
-            onRetry: () => ref.invalidate(
-              outletDashboardProvider(AppEnvironment.outletId),
-            ),
-          ),
-          data: (data) => RefreshIndicator(
-            onRefresh: () async => ref.invalidate(
-              outletDashboardProvider(AppEnvironment.outletId),
-            ),
-            child: _DashboardContent(data: data),
-          ),
+        error: (_, __) => _ErrorView(onRetry: () => ref.invalidate(sessionScopeProvider)),
+        data: (scope) => scope.primaryOutletId == null
+            ? const Center(child: Text('No outlet assignment is available.'))
+            : _ScopedDashboard(outletId: scope.primaryOutletId!),
+      ),
+    );
+  }
+}
+
+class _ScopedDashboard extends ConsumerWidget {
+  const _ScopedDashboard({required this.outletId});
+  final String outletId;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dashboard = ref.watch(outletDashboardProvider(outletId));
+    return dashboard.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) => _ErrorView(onRetry: () => ref.invalidate(outletDashboardProvider(outletId))),
+      data: (poll) => poll.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, __) => _ErrorView(onRetry: () => ref.invalidate(outletDashboardProvider(outletId))),
+        data: (data) => RefreshIndicator(
+          onRefresh: () async => ref.invalidate(outletDashboardProvider(outletId)),
+          child: _DashboardContent(data: data),
         ),
       ),
     );

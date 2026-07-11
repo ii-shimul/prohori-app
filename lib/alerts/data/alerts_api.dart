@@ -31,7 +31,10 @@ class AlertsApi {
 
   Future<void> acknowledge(String id) async {
     if (AppEnvironment.useDemoData) return;
-    await _apiClient.post<void>('/alerts/$id/acknowledge');
+    await _apiClient.post<void>(
+      '/alerts/$id/acknowledge',
+      idempotencyKey: 'alert-ack-$id-${DateTime.now().microsecondsSinceEpoch}',
+    );
   }
 
   static const _demoAlerts = [

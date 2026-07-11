@@ -38,7 +38,11 @@ class CasesApi {
       ));
       return;
     }
-    await _apiClient.post<void>('/cases/$caseId/notes', data: {'note': note});
+    await _apiClient.post<void>(
+      '/cases/$caseId/notes',
+      data: {'note': note},
+      idempotencyKey: 'case-note-$caseId-${DateTime.now().microsecondsSinceEpoch}',
+    );
   }
 
   List<CaseTimelineEvent> _initialTimeline() => [

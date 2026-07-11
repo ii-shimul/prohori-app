@@ -1,7 +1,10 @@
 class AppEnvironment {
   const AppEnvironment._();
 
-  static const useDemoData = true;
+  static const useDemoData = bool.fromEnvironment(
+    'USE_DEMO_DATA',
+    defaultValue: true,
+  );
   static const supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
     defaultValue: 'https://demo.supabase.co',
@@ -12,10 +15,11 @@ class AppEnvironment {
   );
   static const apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://demo.invalid',
+    defaultValue: 'http://10.0.2.2:3000/api/v1',
   );
-  static const outletId = String.fromEnvironment(
-    'OUTLET_ID',
+  /// Demo-only. Live outlet scope must come from authenticated `GET /me`.
+  static const demoOutletId = String.fromEnvironment(
+    'DEMO_OUTLET_ID',
     defaultValue: 'demo-outlet',
   );
 
