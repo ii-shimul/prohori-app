@@ -1,27 +1,36 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../network/api_client.dart';
+import '../network/dto/current_user_response.dart';
+import '../providers/app_cache.dart';
 import '../providers/app_providers.dart';
 
 class SessionScope {
   const SessionScope({
     required this.userId,
-    required this.role,
-    required this.outletIds,
+    required this.locale,
+    required this.memberships,
+    required this.assignments,
   });
 
   final String userId;
-  final String role;
-  final List<String> outletIds;
+  final String locale;
+  final List<ProviderMembershipDto> memberships;
+  final List<OutletAssignmentDto> assignments;
+
+  List<String> get outletIds => assignments
+      .map((assignment) => assignment.outletId)
+      .toSet()
+      .toList(growable: false);
 
   String? get primaryOutletId => outletIds.isEmpty ? null : outletIds.first;
 
-  factory SessionScope.fromJson(Map<String, dynamic> json) {
-    final ids = json['assignedOutletIds'] ?? json['outletIds'] ?? const [];
+  factory SessionScope.fromResponse(CurrentUserResponse response) {
     return SessionScope(
-      userId: '${json['id'] ?? json['userId'] ?? ''}',
-      role: '${json['role'] ?? ''}',
-      outletIds: ids is List ? ids.map((id) => '$id').toList(growable: false) : const [],
+      userId: response.id,
+      locale: response.locale,
+      memberships: response.memberships,
+      assignments: response.assignments,
     );
   }
 }
@@ -32,10 +41,15 @@ class SessionScopeApi {
 
   Future<SessionScope> fetch() async {
     final response = await _apiClient.get<Map<String, dynamic>>('/me');
-    return SessionScope.fromJson(response.data ?? const <String, dynamic>{});
+    final body = response.data;
+    if (body == null) {
+      throw const FormatException('GET /me returned an empty response.');
+    }
+    return SessionScope.fromResponse(CurrentUserResponse.fromJson(body));
   }
 }
 
 final sessionScopeProvider = FutureProvider.autoDispose<SessionScope>((ref) {
+  ref.watch(appCacheEpochProvider);
   return SessionScopeApi(ref.watch(apiClientProvider)).fetch();
 });

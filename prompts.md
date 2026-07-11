@@ -37,3 +37,11 @@ commit -6: inject smoke test to ensure everything's alright, and provide updated
 commit -7: findout the gaps and missing features by compare with backend 
 
 commit-8: we got some issue in dashboard screen, currently we got one central emoney amount but we need to show multiple provider remaining amount, fix the feature mismatch
+
+commit 9  lets start with phase 0, complete the task, test it, and provide short review , what you did
+why you are still keeping demodata? we are connecting backend for replace the static data entirely, we dont need to keep the demodata
+what do you mean we need to have real supabase connection? we already have the real connection in backedn, which is prohori-api, we just using the enpoint withj a base url to replace the dummy data in frontend app
+i got the real env value, i added them in backend, do i need to add them in frontned aswell? if so i got the real envs to work on and replae all the dummy data from our frontend
+it worked when i flutter run with the env, but it supposed to live in the root with the .env file, so that every time i do flutter run  and try to login the app should take the env value and verify the auth" i think currently we dont installed env in app , do that for me
+
+commit -10 we have successfully completed phase 0 , now we gonna start our phase 1, we wont keep any demo data, backend is the only source of the truth, we successfully added real supabaseurl and publishable key in .env, our auth login has been succssful as well" let's begin phase 1
