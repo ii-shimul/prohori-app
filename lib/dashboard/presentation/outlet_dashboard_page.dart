@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/scope/session_scope.dart';
 import '../domain/outlet_dashboard.dart';
+import '../domain/outlet_forecast.dart';
 import 'dashboard_providers.dart';
 import '../../outlets/domain/outlet_catalog_item.dart';
 import '../../outlets/presentation/outlet_providers.dart';
@@ -147,6 +148,8 @@ class _OutletCatalogContent extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _BalancesSection(outletId: selected.id),
+          const SizedBox(height: 16),
+          _ForecastSection(outletId: selected.id),
         ],
       );
 }
@@ -257,6 +260,82 @@ class _BalanceCards extends StatelessWidget {
             ),
         ],
       );
+}
+
+class _ForecastSection extends ConsumerWidget {
+  const _ForecastSection({required this.outletId});
+  final String outletId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final forecast = ref.watch(outletForecastProvider(outletId));
+    return forecast.when(
+      loading: () => const Card(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (_, __) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: OutlinedButton(
+            onPressed: () => ref.invalidate(outletForecastProvider(outletId)),
+            child: const Text('Retry forecast'),
+          ),
+        ),
+      ),
+      data: (value) => _ForecastCard(forecast: value),
+    );
+  }
+}
+
+class _ForecastCard extends StatelessWidget {
+  const _ForecastCard({required this.forecast});
+  final OutletForecast forecast;
+
+  @override
+  Widget build(BuildContext context) {
+    final limiting = forecast.limitingResource;
+    final matchingResources = limiting == null
+        ? const <ForecastResource>[]
+        : forecast.resources
+            .where(
+              (resource) =>
+                  resource.resource == limiting.resource &&
+                  resource.providerId == limiting.providerId,
+            )
+            .toList(growable: false);
+    final etaPoints = (matchingResources.isEmpty
+            ? const <ForecastPoint>[]
+            : matchingResources.first.points)
+            .where((item) => item.likelyDepletionEtaMinutes != null)
+            .toList(growable: false);
+    final point = etaPoints.isEmpty ? null : etaPoints.first;
+    final label = limiting == null
+        ? 'No limiting resource reported.'
+        : limiting.resource == 'shared_cash'
+            ? 'Shared physical cash is limiting.'
+            : 'Authorized provider e-money is limiting.';
+    final eta = point?.likelyDepletionEtaMinutes;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Forecast', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          Text(label),
+          const SizedBox(height: 8),
+          Text(
+            eta == null ? 'Depletion ETA unavailable.' : 'Likely depletion in about $eta minutes.',
+            style: const TextStyle(color: AppPalette.inkMuted),
+          ),
+          const SizedBox(height: 12),
+          Text('Data quality: ${forecast.dataQuality} · Confidence: ${(forecast.modelConfidence * 100).round()}%'),
+        ]),
+      ),
+    );
+  }
 }
 
 class _NoOutletAssignment extends StatelessWidget {

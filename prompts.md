@@ -47,3 +47,5 @@ it worked when i flutter run with the env, but it supposed to live in the root w
 commit -10 we have successfully completed phase 0 , now we gonna start our phase 1, we wont keep any demo data, backend is the only source of the truth, we successfully added real supabaseurl and publishable key in .env, our auth login has been succssful as well" let's begin phase 1
 
 commit-11 we completed phase 1 and tested properly, now we need to connect phase 1 with phase 2,3 , lets complete the phase 2 and phase 3 according our plan
+
+commit -12 can we start our phase 4? or we reamin any unfinshed work in privious phases? if everything clear, continue with our phase works
