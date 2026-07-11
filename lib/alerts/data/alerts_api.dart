@@ -44,6 +44,7 @@ class AlertsApi {
       summary: 'Shared physical cash is below preferred operating range.',
       severity: 'HIGH',
       status: 'OPEN',
+      caseId: 'case-cash-watch',
     ),
     OutletAlert(
       id: 'freshness-check',
@@ -51,6 +52,7 @@ class AlertsApi {
       summary: 'Latest provider feed is available for review.',
       severity: 'LOW',
       status: 'OPEN',
+      caseId: 'case-freshness-check',
     ),
   ];
 }

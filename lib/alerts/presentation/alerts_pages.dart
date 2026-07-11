@@ -75,6 +75,11 @@ class AlertDetailPage extends ConsumerWidget {
     final alert = ref.watch(alertDetailProvider(alertId));
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          tooltip: 'Back to alerts',
+          onPressed: () => context.go('/alerts'),
+          icon: const Icon(Icons.arrow_back),
+        ),
         title: Text(
           'Alert: ${alert.value?.title ?? 'Details'}',
           maxLines: 1,
@@ -104,7 +109,7 @@ class _AlertEvidencePage extends StatelessWidget {
           top: false,
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: _AcknowledgeButton(alertId: alertId),
+            child: _AcknowledgeButton(alertId: alertId, caseId: alert.caseId),
           ),
         ),
         body: ListView(
@@ -390,8 +395,9 @@ class _ErrorView extends StatelessWidget {
 }
 
 class _AcknowledgeButton extends ConsumerStatefulWidget {
-  const _AcknowledgeButton({required this.alertId});
+  const _AcknowledgeButton({required this.alertId, required this.caseId});
   final String alertId;
+  final String? caseId;
 
   @override
   ConsumerState<_AcknowledgeButton> createState() => _AcknowledgeButtonState();
@@ -404,7 +410,7 @@ class _AcknowledgeButtonState extends ConsumerState<_AcknowledgeButton> {
     setState(() => _submitting = true);
     try {
       await ref.read(alertsApiProvider).acknowledge(widget.alertId);
-      if (mounted) context.go('/cases/case-${widget.alertId}');
+      if (mounted && widget.caseId != null) context.go('/cases/${widget.caseId}');
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
